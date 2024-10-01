@@ -137,6 +137,14 @@ def funcion_objetivo(asignaturas):
         
 # Generación restricciones:
 
+# 1) Todas las asignaturas indispensables deben ser asignadas
+
+def rest1(asignaturas, asignaturas_indispensables):
+    res = ''
+    for i in asignaturas:
+        if i[2] is True:
+            res += f"l{i[0]} + "
+    return res.rstrip('+') + " = " + len(asignaturas_indispensables) + ';'
 
 
 # Generación lp_solve:
