@@ -65,7 +65,7 @@ def generador_asignatura(n_asignaturas):
 
 # Separador de indispensbles: checkea si la asignatura es indispensable y la separa en su propio array
 def separador_de_indispensables(asignaturas):
-    
+    # Se abre un array de asignaturas indispensables
     asignaturas_indispensables = []
     for i in asignaturas:
         if i[2] is True:
@@ -73,8 +73,9 @@ def separador_de_indispensables(asignaturas):
             asignaturas_indispensables.append(i)  
     return asignaturas_indispensables
 
+# Separador de asignaturas dispensables:  checkea si la asignatura es dispensable y la separa en su propio array
 def separador_de_dispensables(asignaturas):
-    
+    # Se abre un array de asignaturas dispensables
     asignaturas_dispensables = []
     for i in asignaturas:
         if i[2] is False:
@@ -113,7 +114,7 @@ def randomizar_bloques_no_disponibles(lista_profes_con_bloques_no_disponibles):
     
     for profe, num_no_bloques in lista_profes_con_bloques_no_disponibles:
         # Bloques por semana (Deberían ser 35)
-        bloques_semana = [(dia, bloque)for dia in range(1, dias + 1) for bloque in range(1, bloques + 1)]
+        bloques_semana = [(dia, bloque) for dia in range(1, dias + 1) for bloque in range(1, bloques + 1)]
     
         # Se randomiza
         bloques_no_disponibles = random.sample(bloques_semana, num_no_bloques)
@@ -129,23 +130,41 @@ def funcion_objetivo(asignaturas):
     # Genera la función objetivo de la forma: max: l0 * PRa1 .... + ln * PRan;
     fo = "max: "
     for i in asignaturas:
-        nombre = i[0]
         prioridad = i[3]
         fo += f"l{i} * {prioridad} + "
     return fo.rstrip('+') + ';'
-        
-        
+                
 # Generación restricciones:
 
-# 1) Todas las asignaturas indispensables deben ser asignadas
+# 3.1) Si la asignatura necesita dos bloques estos deben ser seguidos 
+def rest3_1(asignaturas):
+    restriccion = ""
+    bloque = [1,2,3,4,5,6]
+    dia = [1, 2, 3, 4, 5]
+    for a in asignaturas: 
+        nombre = a[0]
+        if a[1] == 2:
+            for d in dia:
+                for b in bloque:
+                    restriccion += f"x{nombre},{b},{d} + x{nombre},{b+1},{d}= 2; \n"
+    return restriccion
 
-def rest1(asignaturas, asignaturas_indispensables):
-    res = ''
-    for i in asignaturas:
-        if i[2] is True:
-            res += f"l{i[0]} + "
-    return res.rstrip('+') + " = " + len(asignaturas_indispensables) + ';'
+# 3.1.1) Limitar a dos bloques por semana
 
+def rest3_1_1(asignaturas):
+    restriccion = ""
+    bloque = [1,2,3,4,6,7]
+    dias = [1,2,3,4,5]
+    for a in asignaturas:
+        nombre = a[0]
+        if a[1] == 2:
+            for b in bloque:
+                for d in dias:
+                    restriccion += f"x{nombre},1,{d} + x{nombre},2,{d} + x{nombre},3,{d} + "
+                    restriccion += f"x{nombre},4,{d} + x{nombre},6,{d} + x{nombre},7,{d} <= 2; \n"
+    return restriccion
+            
+# 3.2) Y en la misma sala:            
 
 # Generación lp_solve:
 def generar_lp(asignaturas, profesores):
