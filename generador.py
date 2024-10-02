@@ -11,14 +11,10 @@ import numpy as np
 # Bloques: [1, 2, 3, 4, 5, 6, 7]
 # Días: [1, 2, 3, 4, 5]
 
-# Variables: [x{Nombre de la asignatura}, {Bloque}, {Día}, {Sala}]
+# Variables: [x{Nombre de la asignatura}, {Bloque}, {Día}, {Sala}, {Profesor}]
 # Variables: [l{a} es la variable que representa si la asignatura a se asigna o no]
-# Variables: [y{p,a,b,d} si el profesor p imparte la asignatura a en el bloque d del día b] 
-# @mixedpaipo: estoy cuestionando si es necesario tener esta variable (y) en el modelo,
-# porque quizás se puede hacer con la variable x todo lo necesario que se necesita hacer con y.
 
-# Variables [p{a,b,d} si el profesor puede impartir la asignatura en el bloque d del día b]
-
+# Parametros: [P{a,b,d} disponibilidad del profesro, [0,1]]
 # Parametros: PR{a} es la prioridad de la asignatura a
 
 # Funciones:
@@ -150,11 +146,11 @@ def rest1(asignaturas, asignaturas_indispensables):
 
 # 2) Los profesores tienen bloques en donde no pueden enseñar.
 
-def rest2(asignaturas, profesores, profesres_bloques_no_disponibles):
+def rest2(asignaturas, profesores, profesores_bloques_no_disponibles):
     restriccion = ""
 
 
-# 3.1) Si la asignatura necesita dos bloques estos deben ser seguidos y en la misma sala
+# 3.1) Si la asignatura necesita dos bloques estos deben ser seguidos y en la misma sala y el mismo profesor
 def rest3_1(asignaturas, salas):
     restriccion = ""
     bloque = [1,2,3,4,5,6]
@@ -162,10 +158,11 @@ def rest3_1(asignaturas, salas):
     for a in asignaturas: 
         for r in salas:
             nombre = a[0]
+            p = a[4] # p s Profesor
             if a[1] == 2:
                 for d in dia:
                     for b in bloque:
-                        restriccion += f"x{nombre},{b},{d},{r} + x{nombre},{b+1},{r} = 2; \n"
+                        restriccion += f"x{nombre},{b},{d},{r},{p} + x{nombre},{b+1},{r}.{p} = 2; \n"
     return restriccion
 
 # 3.1.1) Limitar a dos bloques por semana
@@ -173,12 +170,13 @@ def rest3_1_1(asignaturas, salas):
     restriccion = ""
     dias = [1,2,3,4,5]
     for a in asignaturas:
+        p = a[4]
         for r in salas:
             nombre = a[0]
             if a[1] == 2:
                 for d in dias:
-                    restriccion += f"x{nombre},1,{d},{r} + x{nombre},2,{d}{r} + x{nombre},3,{d}{r} + "
-                    restriccion += f"x{nombre},4,{d},{r} + x{nombre},6,{d}{r} + x{nombre},7,{d}{r} <= 2; \n"
+                    restriccion += f"x{nombre},1,{d},{r},{p} + x{nombre},2,{d},{r},{p} + x{nombre},3,{d},{r},{p} + "
+                    restriccion += f"x{nombre},4,{d},{r},{p} + x{nombre},6,{d},{r},{p} + x{nombre},7,{d},{r},{p} <= 2; \n"
     return restriccion
             
 # 4) En una sala solo se imparte una asignatura:
@@ -190,7 +188,7 @@ def rest4(asignaturas, salas):
         for d in dias:  
             for b in bloques:
                 # Restricción para que en el bloque b de la sala r en el día d solo haya una asignatura
-                restriccion += " + ".join([f"x{a[0]},{b},{d},{r}" for a in asignaturas])
+                restriccion += " + ".join([f"x{a[0]},{b},{d},{r},{a[4]}" for a in asignaturas])
                 restriccion += " <= 1; \n"
     return restriccion
 
