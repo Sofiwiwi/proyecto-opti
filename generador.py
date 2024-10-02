@@ -63,6 +63,17 @@ def generador_asignatura(n_asignaturas):
         asignaturas.append(asignatura_i)
     return asignaturas
 
+# Generador de salas
+
+def generador_de_salas(n_salas):
+    salas = []
+    for i in range(n_salas):
+        sala = "SALA" + str(i)
+        salas.append(sala)
+    
+    return salas
+
+
 # Separador de indispensbles: checkea si la asignatura es indispensable y la separa en su propio array
 def separador_de_indispensables(asignaturas):
     # Se abre un array de asignaturas indispensables
@@ -136,6 +147,15 @@ def funcion_objetivo(asignaturas):
                 
 # Generación restricciones:
 
+# 1) Todas las asignaturas indispensables deben ser asignadas
+
+def rest1(asignaturas, asignaturas_indispensables):
+    res = ''
+    for i in asignaturas:
+        if i[2] is True:
+            res += f"l{i[0]} + "
+    return res.rstrip('+') + " = " + len(asignaturas_indispensables) + ';'
+
 # 3.1) Si la asignatura necesita dos bloques estos deben ser seguidos 
 def rest3_1(asignaturas):
     restriccion = ""
@@ -150,7 +170,6 @@ def rest3_1(asignaturas):
     return restriccion
 
 # 3.1.1) Limitar a dos bloques por semana
-
 def rest3_1_1(asignaturas):
     restriccion = ""
     bloque = [1,2,3,4,6,7]
@@ -164,7 +183,30 @@ def rest3_1_1(asignaturas):
                     restriccion += f"x{nombre},4,{d} + x{nombre},6,{d} + x{nombre},7,{d} <= 2; \n"
     return restriccion
             
-# 3.2) Y en la misma sala:            
+# 3.2) Y en la misma sala:   
+def rest3_2(salas):
+    restriccion = ""
+    bloque = [1,2,3,4,5,6]
+    dia = [1, 2, 3, 4, 5]
+    for s in salas: 
+        nombre = s[0]
+        for d in dia:
+            for b in bloque:
+                restriccion += f"x{nombre},{b},{d} + x{nombre},{b+1},{d}= 2; \n"
+    return restriccion
+
+# 3.2.1) Limitar a dos bloques por semana
+def rest3_2_1(salas):
+    restriccion = ""
+    bloque = [1,2,3,4,6,7]
+    dias = [1,2,3,4,5]
+    for s in salas:
+        nombre = s[0]
+        for b in bloque:
+            for d in dias:
+                restriccion += f"x{nombre},1,{d} + x{nombre},2,{d} + x{nombre},3,{d} + "
+                restriccion += f"x{nombre},4,{d} + x{nombre},6,{d} + x{nombre},7,{d} <= 2; \n"
+    return restriccion         
 
 # Generación lp_solve:
 def generar_lp(asignaturas, profesores):
