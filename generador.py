@@ -97,8 +97,6 @@ def generar_LPSolve(asignaturas, salas, file_name):
         for a in range(c_asignaturas):
             asignatura = asignaturas[a]
 
-            profesor = asignatura.profesor
-
             if asignatura.cantBloques == 1:
                 t = " + ".join([f"x{a + 1}_{b+1}_{d+1}_{s + 1}"
                                 for b in range(7)
@@ -106,7 +104,7 @@ def generar_LPSolve(asignaturas, salas, file_name):
                                 for s in range(c_salas)])
             else:
                 t = " + ".join([f"c{a+1}_{b+1}_{d+1}_{s+1}"
-                                for b in range(7)
+                                for b in range(6)
                                 for d in range(5)
                                 for s in range(c_salas)])
             file.write(t + f" = l{a+1};\n")
@@ -118,21 +116,14 @@ def generar_LPSolve(asignaturas, salas, file_name):
 
             for b in range(6):
                 for d in range(5):
-                    bloques_ocupados = asignaturas[a].profesor.bloques
-
-                    if [b+1,d+1] in bloques_ocupados:
-                        continue
-                    if [b+2,d+1] in bloques_ocupados:
-                        continue
-
                     for s in range(c_salas):
                         t = f"x{a+1}_{b+1}_{d+1}_{s+1} + x{a+1}_{b+2}_{d+1}_{s+1}"
-                        file.write(t+f" <= c{a+1}_{b+1}_{d+1}_{s+1} + 1;\n")
 
+                        file.write(t+f" <= c{a+1}_{b+1}_{d+1}_{s+1} + 1;\n")
                         file.write(t+f" >= 2 c{a+1}_{b+1}_{d+1}_{s+1};\n")
 
         file.write("\n/* Restriccion 6: En una sala se imparte solo una asignatura por bloque */\n")
-        for b in range(6):
+        for b in range(7):
             for d in range(5):
                 for s in range(c_salas):
                     t = " + ".join([f"x{a+1}_{b+1}_{d+1}_{s+1}"

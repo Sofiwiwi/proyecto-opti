@@ -3,6 +3,7 @@ from generador import generar_LPSolve, generar_asignaturas, generar_salas
 import random
 import os
 from reporte import generar_reporte
+import time
 
 
 def main(arg_tamanos, rep):
@@ -81,7 +82,13 @@ def main(arg_tamanos, rep):
 
                 generar_LPSolve(asignaturas, salas, lp_file)
                 out_file = lp_file.replace('.lp', '.txt').replace('instancias', 'resultados')
+
+                print(f"Resolviendo instancia {lp_file}...")
+                time_0 = time.time()
                 os.system(f"lp_solve {lp_file} > {out_file}")
+                tiempo = time.time() - time_0
+                t_seg = tiempo % 60
+                print(f"Instancia resuelta en {t_seg} segundos. Generando reporte...")
 
                 generar_reporte(out_file, asignaturas, salas)
 

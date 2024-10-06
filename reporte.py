@@ -47,7 +47,7 @@ def generar_reporte(out_file, asignaturas, salas):
                 tup = "-"
                 s = "-"
 
-                if asignatura.cantBloques == 2:
+                if asignatura.cantBloques == 2 and asignacion[1] != "7":
                     c = pattern_c.findall(text)[0]
                     sC = pattern_sC.findall(text)
 
@@ -57,7 +57,7 @@ def generar_reporte(out_file, asignaturas, salas):
                     for tup_c in sC:
                         if int(tup_c[3]) == 1:
                             if s == 0:
-                                tup = f"({tup_c[1]},{tup_c[2]},{tup_c[3]})"
+                                tup = f"({tup_c[0]},{tup_c[1]},{tup_c[2]})"
                             s += 1
                 else:
                     sC = "-"
