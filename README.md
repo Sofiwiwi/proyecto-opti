@@ -15,3 +15,5 @@ La función generar_asignaturas() asigna que el 20% de las asignaturas sean indi
 La función generar_LPSolve() crea archivos que contienen la función objetivo y las restricciones según la instancia.
 - main.py:
 Crea las instancias, según el tamaño y el número de repeticiones entregados y las resuelve.
+- reporte.py:
+Se crea un archivo reporte.txt en el cual se especifican las soluciones encontradas.
