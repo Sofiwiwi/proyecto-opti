@@ -140,16 +140,27 @@ def generar_LPSolve(asignaturas, salas, file_name):
                     file.write(t + " <= 0;\n")
 
         file.write("\n/* Variables binarias */\n")
+        ls = []
+        xs = []
+        cs = []
         for a in range(c_asignaturas):
-            file.write(f"binary l{a + 1};\n")
+            ls.append(f"l{a + 1}")
 
             asignatura = asignaturas[a]
 
             for b in range(7):
                 for d in range(5):
                     for s in range(c_salas):
-                        file.write(f"binary x{a + 1}_{b + 1}_{d + 1}_{s + 1};\n")
+                        xs.append(f"x{a + 1}_{b + 1}_{d + 1}_{s + 1}")
 
                         if asignatura.cantBloques == 2 and b < 6:
-                            file.write(f"binary c{a + 1}_{b + 1}_{d + 1}_{s + 1};\n")
+                            cs.append(f"c{a + 1}_{b + 1}_{d + 1}_{s + 1}")
 
+        file.write("bin ")
+        file.write(",".join(ls) + ";\n")
+
+        file.write("bin ")
+        file.write(",".join(xs) + ";\n")
+
+        file.write("bin ")
+        file.write(",".join(cs) + ";\n")

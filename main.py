@@ -6,7 +6,10 @@ from reporte import generar_reporte
 import time
 
 
-def main(arg_tamanos, rep):
+def main(arg_tamanos, rep, solve, reporte):
+    if reporte:
+        solve = True
+
     cantidad_asignaturas = {
         "Medianas": [
             [40, 45],
@@ -50,7 +53,7 @@ def main(arg_tamanos, rep):
     elif arg_tamanos == "Grandes":
         tamanos = ["Grandes"]
 
-    print("Generando instancias...\n")
+    print("Generando instancias...")
 
     for filename in os.listdir("instancias"):
         os.system(f"rm instancias/{filename}")
@@ -72,7 +75,7 @@ def main(arg_tamanos, rep):
 
                 lp_file = f"instancias/{tamano}_{index + 1}_{r + 1}.lp"
                 print(
-                    f"{5 * rep * t + rep * index + (r + 1)}: "
+                    f"\n{5 * rep * t + rep * index + (r + 1)}: "
                     f"Generando instancia numero de {c_asignaturas} asignaturas y {c_salas} salas "
                     f"en el archivo {lp_file}..."
                 )
@@ -81,16 +84,18 @@ def main(arg_tamanos, rep):
                 salas = generar_salas(c_salas)
 
                 generar_LPSolve(asignaturas, salas, lp_file)
-                out_file = lp_file.replace('.lp', '.txt').replace('instancias', 'resultados')
 
-                print(f"Resolviendo instancia {lp_file}...")
-                time_0 = time.time()
-                os.system(f"lp_solve {lp_file} > {out_file}")
-                tiempo = time.time() - time_0
-                t_seg = tiempo % 60
-                print(f"Instancia resuelta en {t_seg} segundos. Generando reporte...")
+                if solve:
+                    out_file = lp_file.replace('.lp', '.txt').replace('instancias', 'resultados')
+                    print(f"Resolviendo instancia {lp_file}...")
+                    time_0 = time.time()
+                    os.system(f"lp_solve {lp_file} > {out_file}")
+                    tiempo = time.time() - time_0
+                    t_seg = tiempo % 60
+                    print(f"Instancia resuelta en {t_seg} segundos. Generando reporte...")
 
-                generar_reporte(out_file, asignaturas, salas)
+                if reporte:
+                    generar_reporte(out_file, asignaturas, salas)
 
 
 if __name__ == "__main__":
@@ -98,8 +103,11 @@ if __name__ == "__main__":
     parser.add_argument("tamano", choices=["Medianas", "Grandes", "Ambos"],
                         help="El tamaño de las asignaturas y salas (Medianas, Grandes o Ambos).")
     parser.add_argument("rep", type=int, help="La cantidad de instancias a generar y resolver por cada caso.")
+    parser.add_argument("--solve", action="store_true", help="Las instancias se resuelven con lp_solve a medida que se crean.")
+    parser.add_argument("--reporte", action="store_true", help="Se genera un reporte de las instancias resueltas.")
+
     args = parser.parse_args()
 
     print(f"Generando y resolviendo {args.rep} caso por instancia de {args.tamano} tamaños.")
 
-    main(args.tamano, args.rep)
+    main(args.tamano, args.rep, args.solve, args.reporte)
