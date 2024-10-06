@@ -1,6 +1,7 @@
 A la hora de ejecutar el código se deben pasar dos argumentos, los tamaños de las instancias y el número de repeticiones. De esta forma:
->> python3 main.py [Grandes|Medianas|Ambos] <numero de repeticiones por instancia>
-
+```
+python3 main.py [Grandes|Medianas|Ambos] <numero de repeticiones por instancia>
+```
 Se debe tener instalado el programa lp_solve.
 
 El repositorio cuenta con los siguientes archivos:
