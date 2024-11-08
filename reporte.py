@@ -3,7 +3,7 @@ import re
 dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"]
 
 
-def generar_reporte(out_file, asignaturas, salas):
+def generar_reporte(out_file):
     with open(out_file, "r") as out:
         with open(f"reporte.txt", "a") as reporte:
             text = out.read()

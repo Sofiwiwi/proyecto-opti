@@ -1,6 +1,6 @@
 from clases import Asignatura, Sala, Profesor
 from utility import bloques_disponibles
-
+import numpy as np
 
 def generar_asignaturas(c_asignaturas):
     ca_indispensables = round(0.2 * c_asignaturas)
@@ -51,6 +51,8 @@ def generar_LPSolve(asignaturas, salas, file_name):
     c_asignaturas = len(asignaturas)
     c_salas = len(salas)
 
+    array_validez = np.ones((c_asignaturas, 7, 5, c_salas))
+
     with open(file_name, "w") as file:
         file.write("max: ")
 
@@ -75,11 +77,35 @@ def generar_LPSolve(asignaturas, salas, file_name):
 
         file.write("\n/* Restriccion 2: Bloques ocupados de los profesores */\n")
 
-        t = " + ".join([f"x{a+1}_{bloque[0]}_{bloque[1]}_{s+1}"
-                        for s in range(c_salas)
-                        for a in range(c_asignaturas)
-                        for bloque in asignaturas[a].profesor.bloques])
-        file.write(f"{t} <= 0;\n")
+        bloqueados = []
+
+        for a in range(c_asignaturas):
+            for s in range(c_salas):
+                for bloque in asignaturas[a].profesor.bloques:
+                    bloqueados.append(f"x{a+1}_{bloque[0]}_{bloque[1]}_{s+1}")
+
+                    array_validez[a, bloque[0]-1, bloque[1]-1, s] = 0
+
+        '''if len(bloqueados) > 0:
+            t = " + ".join(bloqueados)
+            file.write(f"{t} <= 0;\n")'''
+
+        file.write("\n/* Restriccion 7: Una asignatura a solo se puede asignar a una sala r que pueda recibir la cantidad de estudiantes de a. */\n")
+        for a in range(c_asignaturas):
+            for s in range(c_salas):
+                if salas[s].capacidad < asignaturas[a].cantEstudiantes:
+                    salas_no_disponibles = []
+
+                    for b in range(7):
+                        for d in range(5):
+                            salas_no_disponibles.append(f"x{a+1}_{b+1}_{d+1}_{s+1}")
+                            array_validez[a, b, d, s] = 0
+
+                    if len(salas_no_disponibles) == 0:
+                        continue
+
+                    '''t = " + ".join(salas_no_disponibles)
+                    file.write(t + " <= 0;\n")'''
 
         file.write("\n/* Restriccion 3: Si a la asignatura a se le asigna horario serán CBA bloques, si no es asignada serán 0 */\n")
         for a in range(c_asignaturas):
@@ -88,9 +114,13 @@ def generar_LPSolve(asignaturas, salas, file_name):
             bloques_ocupados = profesor.bloques
             bloques_disp = bloques_disponibles(bloques_ocupados)
 
-            t = " + ".join([f"x{a+1}_{bloque[0]}_{bloque[1]}_{s+1}"
-                            for s in range(c_salas)
-                            for bloque in bloques_disp])
+            x_arr = [f"x{a+1}_{bloque[0]}_{bloque[1]}_{s+1}"
+                    for s in range(c_salas)
+                    for bloque in bloques_disp
+                    if array_validez[a, bloque[0]-1, bloque[1]-1, s] == 1]
+            if len(x_arr) == 0:
+                continue
+            t = " + ".join(x_arr)
             file.write(f"{t} = {asignatura.cantBloques} l{a+1};\n")
 
         file.write("\n/* Restriccion 4: Relación entre l_a y x_a_b_d_r o c_a_b_d_r */\n")
@@ -98,15 +128,23 @@ def generar_LPSolve(asignaturas, salas, file_name):
             asignatura = asignaturas[a]
 
             if asignatura.cantBloques == 1:
-                t = " + ".join([f"x{a + 1}_{b+1}_{d+1}_{s + 1}"
+                x_arr = [f"x{a + 1}_{b+1}_{d+1}_{s + 1}"
                                 for b in range(7)
                                 for d in range(5)
-                                for s in range(c_salas)])
+                                for s in range(c_salas)
+                                if array_validez[a, b, d, s] == 1]
+                if len(x_arr) == 0:
+                    continue
+                t = " + ".join(x_arr)
             else:
-                t = " + ".join([f"c{a+1}_{b+1}_{d+1}_{s+1}"
+                x_arr = [f"c{a+1}_{b+1}_{d+1}_{s+1}"
                                 for b in range(6)
                                 for d in range(5)
-                                for s in range(c_salas)])
+                                for s in range(c_salas)
+                                if array_validez[a, b, d, s] == 1 and array_validez[a, b+1, d, s] == 1]
+                if len(x_arr) == 0:
+                    continue
+                t = " + ".join(x_arr)
             file.write(t + f" = l{a+1};\n")
 
         file.write("\n/* Restriccion 5: Bloques consecutivos en la misma sala */\n")
@@ -117,6 +155,9 @@ def generar_LPSolve(asignaturas, salas, file_name):
             for b in range(6):
                 for d in range(5):
                     for s in range(c_salas):
+                        if array_validez[a, b, d, s] == 0 or array_validez[a, b+1, d, s] == 0:
+                            continue
+
                         t = f"x{a+1}_{b+1}_{d+1}_{s+1} + x{a+1}_{b+2}_{d+1}_{s+1}"
 
                         file.write(t+f" <= c{a+1}_{b+1}_{d+1}_{s+1} + 1;\n")
@@ -126,18 +167,14 @@ def generar_LPSolve(asignaturas, salas, file_name):
         for b in range(7):
             for d in range(5):
                 for s in range(c_salas):
-                    t = " + ".join([f"x{a+1}_{b+1}_{d+1}_{s+1}"
-                                    for a in range(c_asignaturas)])
-                    file.write(t + " <= 1;\n")
+                    x_arr = [f"x{a+1}_{b+1}_{d+1}_{s+1}"
+                                    for a in range(c_asignaturas)
+                                    if array_validez[a, b, d, s] == 1]
+                    if len(x_arr) == 0:
+                        continue
 
-        file.write("\n/* Restriccion 7: Una asignatura a solo se puede asignar a una sala r que pueda recibir la cantidad de estudiantes de a. */\n")
-        for a in range(c_asignaturas):
-            for s in range(c_salas):
-                if salas[s].capacidad < asignaturas[a].cantEstudiantes:
-                    t = " + ".join([f"x{a+1}_{b+1}_{d+1}_{s+1}"
-                                    for b in range(7)
-                                    for d in range(5)])
-                    file.write(t + " <= 0;\n")
+                    t = " + ".join(x_arr)
+                    file.write(t + " <= 1;\n")
 
         file.write("\n/* Variables binarias */\n")
         ls = []
@@ -151,9 +188,13 @@ def generar_LPSolve(asignaturas, salas, file_name):
             for b in range(7):
                 for d in range(5):
                     for s in range(c_salas):
+                        if array_validez[a, b, d, s] == 0:
+                            continue
                         xs.append(f"x{a + 1}_{b + 1}_{d + 1}_{s + 1}")
 
                         if asignatura.cantBloques == 2 and b < 6:
+                            if array_validez[a, b + 1, d, s] == 0:
+                                continue
                             cs.append(f"c{a + 1}_{b + 1}_{d + 1}_{s + 1}")
 
         file.write("bin ")
