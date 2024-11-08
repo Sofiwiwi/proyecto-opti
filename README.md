@@ -2,9 +2,19 @@ A la hora de ejecutar el código se deben pasar dos argumentos, los tamaños de 
 ```
 python3 main.py [Grandes|Medianas|Ambos] <numero de repeticiones por instancia>
 ```
+Un ejemplo de ejecucion seria:
+```
+python3 main.py Ambos 727
+```
+
 Se debe tener instalado el programa lp_solve.
+Python 3.10 en adelate
+Libreria argparse, en caso de no tener descargada la misma, copiar en la terminal 
 
 El repositorio cuenta con los siguientes archivos:
+```
+pip install argparse
+```
 
 - clases.py:
 Almacena las clases de las salas, los profesores y las asignaturas. Asigna de forma aleatoria los nombres.
