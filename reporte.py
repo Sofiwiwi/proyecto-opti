@@ -1,6 +1,7 @@
 import re
 import os
 import numpy as np
+import pandas as pd
 
 dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"]
 
@@ -41,13 +42,27 @@ def print_horario(horario):
 
 
 def generar_reporte(out_file):
+    df = pd.read_csv("reporte.csv", header=0)
+
     with open(out_file, "r") as out:
         text = out.read()
 
+        instancia = out_file.split("/")[-1].replace(".txt", "")
+
         if "infactible" in text:
+            # Set infactible to 1 in the csv
+            df.loc[df["instancia"] == instancia, "infactible"] = 1
+            df.loc[df["instancia"] == instancia, "tiempo"] = text.split()[0]
+            # Save the csv
+            df.to_csv("reporte.csv", index=False)
             return
 
         if "timeout" in text:
+            # Set infactible to 1 in the csv
+            df.loc[df["instancia"] == instancia, "infactible"] = 2
+            df.loc[df["instancia"] == instancia, "tiempo"] = -1
+            # Save the csv
+            df.to_csv("reporte.csv", index=False)
             return
 
         pattern_l = re.compile(r"l(\d+)\s+(\d+)")
@@ -57,17 +72,8 @@ def generar_reporte(out_file):
 
         total_asignaturas = len(ls)
         asignaturas_asignadas = sum([int(l[1]) for l in ls])
-        
-        __import__('pprint').pprint("-*-"*20)
-        print()
-        print(out_file)
-        print()
-        
-        __import__('pprint').pprint(f"Total de asignaturas: {total_asignaturas}")
-        __import__('pprint').pprint(f"Asignaturas asignadas: {asignaturas_asignadas}")
-
-        if total_asignaturas > 0:
-            __import__('pprint').pprint(f"Porcentaje de asignaturas asignadas: {asignaturas_asignadas/total_asignaturas*100}%")
+        df.loc[df["instancia"] == instancia, "asignadas"] = asignaturas_asignadas
+        df.loc[df["instancia"] == instancia, "tiempo"] = float(text.split()[0])
 
         pattern_x = re.compile(r"x(\d+)_(\d+)_(\d+)_(\d+)\s+(\d+)")
         xs = re.findall(pattern_x, text)
@@ -79,7 +85,7 @@ def generar_reporte(out_file):
             horario[int(x[1])-1][int(x[2])-1].append(s)
 
         print_horario(horario)
-
+        df.to_csv("reporte.csv", index=False)
 
 for file in os.listdir("resultados_clean"):
     generar_reporte(f"resultados_clean/{file}")

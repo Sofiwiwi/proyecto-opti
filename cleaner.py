@@ -6,6 +6,8 @@ def clean_instances(file_name):
         lines = file.readlines()
 
     with open(f"resultados_clean/{file_name}", "w") as file:
+        file.write("\n".join(lines[0].split(' ')))
+        file.write("\n")
         if len(lines) == 0:
             file.write("no ejecutado\n")
             return
@@ -16,9 +18,6 @@ def clean_instances(file_name):
         if lines[1].startswith("Timeout"):
             file.write("timeout\n")
             return
-        
-        file.write(lines[0])
-        file.write(lines[1])
 
         var_values = False
         pattern = re.compile(r"(\w+)\s+(\d+)")
@@ -45,6 +44,8 @@ def clean_instances(file_name):
             if line.startswith("Actual values of the variables:"):
                 var_values = True
                 continue
+
+        file.write("\n")
 
 
 

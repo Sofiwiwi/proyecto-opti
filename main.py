@@ -2,7 +2,6 @@ import argparse
 from generador import generar_LPSolve, generar_asignaturas, generar_salas
 import random
 import os
-from reporte import generar_reporte
 import time
 
 
@@ -64,6 +63,9 @@ def main(arg_tamanos, rep, solve, reporte):
     if os.path.exists("reporte.txt"):
         os.system(f"rm reporte.txt")
 
+    with open('reporte.csv', 'w') as f:
+        f.write("instancia,c_asignaturas,c_salas,c_variables,c_restricciones,tiempo,asignadas,infactible\n")
+
     for t in range(len(tamanos)):
         tamano = tamanos[t]
         for index in range(5):
@@ -74,6 +76,7 @@ def main(arg_tamanos, rep, solve, reporte):
                                          cantidad_salas[tamano][index][1])
 
                 lp_file = f"instancias/{tamano}_{index + 1}_{r + 1}.lp"
+
                 print(
                     f"\n{5 * rep * t + rep * index + (r + 1)}: "
                     f"Generando instancia numero de {c_asignaturas} asignaturas y {c_salas} salas "
@@ -83,19 +86,10 @@ def main(arg_tamanos, rep, solve, reporte):
                 asignaturas = generar_asignaturas(c_asignaturas)
                 salas = generar_salas(c_salas)
 
-                generar_LPSolve(asignaturas, salas, lp_file)
+                c_var, c_res = generar_LPSolve(asignaturas, salas, lp_file)
 
-                if solve:
-                    out_file = lp_file.replace('.lp', '.txt').replace('instancias', 'resultados')
-                    print(f"Resolviendo instancia {lp_file}...")
-                    time_0 = time.time()
-                    os.system(f"lp_solve {lp_file} > {out_file}")
-                    tiempo = time.time() - time_0
-                    t_seg = tiempo % 60
-                    print(f"Instancia resuelta en {t_seg} segundos. Generando reporte...")
-
-                if reporte:
-                    generar_reporte(out_file, asignaturas, salas)
+                with open('reporte.csv', 'a') as f:
+                    f.write(f"{tamano}_{index + 1}_{r + 1},{c_asignaturas},{c_salas},{c_var},{c_res},-1.0,-1,0\n")
 
 
 if __name__ == "__main__":
