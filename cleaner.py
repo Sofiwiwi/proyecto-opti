@@ -9,14 +9,16 @@ def clean_instances(file_name):
         if len(lines) == 0:
             file.write("no ejecutado\n")
             return
-        if lines[0].startswith("This problem is infeasible"):
+        if lines[1].startswith("This problem is infeasible"):
             file.write("infactible\n")
             return
 
-        if lines[0].startswith("Timeout"):
-            file.write("infactible\n")
+        if lines[1].startswith("Timeout"):
+            file.write("timeout\n")
             return
-
+        
+        file.write(lines[0])
+        file.write(lines[1])
 
         var_values = False
         pattern = re.compile(r"(\w+)\s+(\d+)")
@@ -30,7 +32,7 @@ def clean_instances(file_name):
                 if match:
                     var_name = match.group(1)
                     var_value = match.group(2)
-                    if int(var_value) == 0:
+                    if int(var_value) == 0 and not line.startswith("l"):
                         continue
                     file.write(f"{var_name} {var_value}\n")
                 continue
@@ -43,6 +45,8 @@ def clean_instances(file_name):
             if line.startswith("Actual values of the variables:"):
                 var_values = True
                 continue
+
+
 
 
 def main():
